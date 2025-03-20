@@ -1,9 +1,7 @@
 from marshmallow import Schema, fields
 
 
-class GlobalPreference(Schema):
-    battery_charge_min_pct = fields.Float()
-    battery_max_temperature = fields.Float()
+class GlobalPreferenceOverride(Schema):
     confirm_before_connecting = fields.Int()
     cpu_scheduling_period_minutes = fields.Float()
     cpu_usage_limit = fields.Float()
@@ -20,19 +18,17 @@ class GlobalPreference(Schema):
     leave_apps_in_memory = fields.Int()
     max_bytes_sec_down = fields.Float()
     max_bytes_sec_up = fields.Float()
-    max_cpus = fields.Int()
     max_ncpus_pct = fields.Float()
-    mod_time = fields.Float()
     net_end_hour = fields.Float()
     net_start_hour = fields.Float()
-    network_wifi_only = fields.Int()
-    override_file_present = fields.Int()
+    niu_cpu_usage_limit = fields.Float(allow_none=True)
+    niu_max_ncpus_pct = fields.Float(allow_none=True)
+    niu_suspend_cpu_usage = fields.Float(allow_none=True)
     ram_max_used_busy_pct = fields.Float()
     ram_max_used_idle_pct = fields.Float()
     run_gpu_if_user_active = fields.Int()
     run_if_user_active = fields.Int()
     run_on_batteries = fields.Int()
-    source_project = fields.Str(allow_none=True)
     start_hour = fields.Float()
     suspend_cpu_usage = fields.Float()
     suspend_if_no_recent_input = fields.Float()
@@ -41,5 +37,5 @@ class GlobalPreference(Schema):
     work_buf_min_days = fields.Float()
 
 
-class GlobalPreferences(Schema):
-    global_preferences = fields.Nested(GlobalPreference())
+class GlobalPreferenceOverrides(Schema):
+    global_preferences = fields.Nested(GlobalPreferenceOverride())

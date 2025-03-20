@@ -14,3 +14,5 @@ dist/
 cov/
 
 old_*
+boinc_client.log
+
