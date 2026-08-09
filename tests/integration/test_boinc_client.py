@@ -149,13 +149,15 @@ def test_global_preferences(boinc_session_client):
     assert "error" in result  # No global_preferences file available
 
 
+@mark.integration
+def test_proxy_settings(boinc_session_client):
+    result = boinc_session_client.get_proxy_settings()
+    assert result
+    assert "proxy_info" in result
+
+
 @mark.authenticated
 def test_can_attach_and_detach_project(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     assert (
         boinc_test_client.poll_attach_project()["project_attach_reply"]["error_num"]
         == 0
@@ -170,11 +172,6 @@ def test_can_attach_and_detach_project(boinc_test_client, project_weak_key):
 
 @mark.authenticated
 def test_can_attach_and_update_project(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     pre_update_time = boinc_test_client.get_client_state()["client_state"][
         "time_stats"
     ]["now"]
@@ -187,11 +184,6 @@ def test_can_attach_and_update_project(boinc_test_client, project_weak_key):
 
 @mark.authenticated
 def test_can_attach_and_reset_project(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     pre_update_time = boinc_test_client.get_client_state()["client_state"][
         "time_stats"
     ]["now"]
@@ -204,11 +196,6 @@ def test_can_attach_and_reset_project(boinc_test_client, project_weak_key):
 
 @mark.authenticated
 def test_can_attach_to_multiple_projects(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     boinc_test_client.attach_project(
         "Space Community Grid",
         "https://www.spacecommunitygrid.org/",
@@ -230,11 +217,6 @@ def test_can_attach_to_multiple_projects(boinc_test_client, project_weak_key):
 
 @mark.authenticated
 def test_can_suspend_and_resume_project(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     boinc_test_client.suspend_project("https://www.worldcommunitygrid.org/")
     assert boinc_test_client.get_project_status()["project_status"][0][
         "suspended_via_gui"
@@ -248,11 +230,6 @@ def test_can_suspend_and_resume_project(boinc_test_client, project_weak_key):
 
 @mark.authenticated
 def test_can_set_and_unset_nomorework_on_project(boinc_test_client, project_weak_key):
-    boinc_test_client.attach_project(
-        "World Community Grid",
-        "https://www.worldcommunitygrid.org/",
-        project_weak_key,
-    )
     boinc_test_client.project_no_more_work("https://www.worldcommunitygrid.org/")
     assert boinc_test_client.get_project_status()["project_status"][0][
         "dont_request_more_work"
@@ -262,3 +239,55 @@ def test_can_set_and_unset_nomorework_on_project(boinc_test_client, project_weak
     assert not boinc_test_client.get_project_status()["project_status"][0][
         "dont_request_more_work"
     ]
+
+
+@mark.authenticated
+def test_can_read_all_notices(boinc_test_client, project_weak_key):
+    assert "notices" in boinc_test_client.get_all_notices()
+
+
+@mark.authenticated
+def test_can_write_and_read_global_preferences(boinc_test_client, project_weak_key):
+    assert "error" in boinc_test_client.get_global_prefs_override()
+    assert (
+        boinc_test_client.get_global_prefs_working()["global_preferences"][
+            "max_ncpus_pct"
+        ]
+        == 0.0
+    )
+    boinc_test_client.set_global_prefs_override({"max_ncpus_pct": 10})
+    boinc_test_client.read_global_prefs_override()
+    assert boinc_test_client.get_global_prefs_override()
+    assert (
+        boinc_test_client.get_global_prefs_working()["global_preferences"][
+            "max_ncpus_pct"
+        ]
+        == 10.0
+    )
+
+
+@mark.authenticated
+def test_can_sequentially_set_global_overrides(boinc_test_client, project_weak_key):
+    boinc_test_client.set_global_prefs_override({"max_ncpus_pct": 10})
+    boinc_test_client.read_global_prefs_override()
+    boinc_test_client.update_global_prefs_override({"cpu_usage_limit": 10})
+    boinc_test_client.read_global_prefs_override()
+    assert (
+        boinc_test_client.get_global_prefs_working()["global_preferences"][
+            "max_ncpus_pct"
+        ]
+        == 10.0
+    )
+    assert (
+        boinc_test_client.get_global_prefs_working()["global_preferences"][
+            "cpu_usage_limit"
+        ]
+        == 10.0
+    )
+
+
+@mark.authenticated
+def test_can_set_compute_modes(boinc_test_client):
+    assert boinc_test_client.set_cpu_run_mode("always", 60) == {"success": True}
+    assert boinc_test_client.set_gpu_run_mode("auto", 0) == {"success": True}
+    assert boinc_test_client.set_network_mode("never") == {"success": True}

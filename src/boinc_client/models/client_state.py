@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields, post_load, pre_load, EXCLUDE
+from marshmallow import EXCLUDE, Schema, fields, post_load, pre_load
 
 from boinc_client.models.helpers import (
     create_lists,
@@ -45,6 +45,7 @@ class AppDetails(Schema):
 class AppFileRef(Schema):
     class Meta:
         unknown = EXCLUDE
+
     copy_file = fields.Bool()
     file_name = fields.Str()
     main_program = fields.Bool()
@@ -60,13 +61,17 @@ class AppFileRef(Schema):
         data["copy_file"] = "copy_file" in data
         return data
 
+
 class AppVersion(Schema):
     class Meta:
         unknown = EXCLUDE
+
     api_version = fields.Str()
     app_name = fields.Str()
     avg_ncpus = fields.Float()
-    file_ref = fields.Nested(AppFileRef(many=True), required=False, missing=None)
+    file_ref = fields.Nested(
+        AppFileRef(many=True), required=False, allow_none=True, load_default=None
+    )
     flops = fields.Float()
     platform = fields.Str()
     version_num = fields.Int()
@@ -136,6 +141,7 @@ class GlobalPreferences(Schema):
 class State(Schema):
     class Meta:
         unknown = EXCLUDE
+
     app_versions = fields.Nested(
         AppVersion(many=True), data_key="app_version", allow_none=True
     )

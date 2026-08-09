@@ -30,7 +30,6 @@ from boinc_client.models.helpers import (
 ) """
 
 
-
 class RscBackoffTime(Schema):
     name = fields.Str()
     value = fields.Float()
@@ -127,6 +126,18 @@ class ProjectState(Schema):
     @post_load
     def _a_replace_none_string(self, data, **kwargs):
         return replace_none_string(data)
+
+    @post_load
+    def _b_drop_empty_extension_fields(self, data, **kwargs):
+        for key in (
+            "no_rsc_pref",
+            "venue",
+            "verify_files_on_app_start",
+            "attached_via_acct_mgr",
+        ):
+            if data.get(key) == "":
+                data.pop(key, None)
+        return data
 
 
 class ProjectStatus(Schema):
